@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/border"
+    tools:context="com.example.ashut.popularmoviespart1.MainActivity">
+
+    <TextView
+        android:id="@+id/tv_heading"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:text="Now Playing"
+        android:visibility="invisible"
+        android:textColor="#ffffff"
+        android:textSize="32sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center_horizontal"
+        />
+    <GridView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/gridView"
+        android:layout_below="@+id/tv_heading"
+        android:numColumns="auto_fit"
+        android:layout_marginTop="0dp"
+        android:layout_margin="15dp"
+        android:horizontalSpacing="10dp"
+
+        />
+    <TextView
+        android:id="@+id/tv_error_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:padding="45dp"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textSize="46sp"
+        android:text="@string/noConnection"
+        android:visibility="invisible" />
+    <ProgressBar
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:visibility="invisible"
+        android:layout_centerInParent="true"
+        style="@style/Base.Widget.AppCompat.ProgressBar"
+        android:id="@+id/pb_loader"/>
+
+
+</RelativeLayout>
