@@ -1,9 +1,11 @@
 package com.example.ashut.popularmoviespart1;
 
 import android.content.Intent;
+import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -21,18 +23,19 @@ import com.example.ashut.popularmoviespart1.SingleItems.MovieItem;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  {
 
 
     private static TextView mErrorMessageDisplay;
     private ProgressBar mLoadingIndicator;
     private static TextView mHeadingDisplay;
+    static int a=0;
     private static GridView mGridView;
     private MovieAdapter mMovieAdapter;
     private static ArrayList<MovieItem> mGridData;
     Boolean isFilterOn=false;
     boolean InternetStatus;
-    String movieId="";String movieTitle="";
+    String movieId="";String movieTitle="";String posterPath="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +57,11 @@ public class MainActivity extends AppCompatActivity {
                 MovieItem item = (MovieItem) parent.getItemAtPosition(position);
                 movieId=item.getMovieId();
                 movieTitle=item.getTitle();
+                posterPath=item.getPosterPath();
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra("MOVIE_ID",movieId);
                 intent.putExtra("MOVIE_TITLE",movieTitle);
+                intent.putExtra("POSTER_PATH",posterPath);
                 startActivity(intent);
 
 
@@ -107,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
     private class MovieQueryTask extends AsyncTask<URL, Void, String> {
 
         @Override
@@ -155,21 +162,24 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemThatWasClickedId = item.getItemId();
         isFilterOn=true;
+
         if (itemThatWasClickedId == R.id.popular_view)
         {
+            a=1;
             mHeadingDisplay.setText("Popular Movies");
             makeMovieQuery(R.id.popular_view);
             return true;
         }  if (itemThatWasClickedId == R.id.top_rated_view) {
-
+            a=2;
             mHeadingDisplay.setText("Top Rated Movies");
             makeMovieQuery(R.id.top_rated_view);
             return true;
         }
         if(itemThatWasClickedId==R.id.my_favorites_view){
-            Intent i=new Intent(MainActivity.this,FavoritesActivity.class);
+            a=0;
+            Intent i=new Intent(MainActivity.this,FavouritesActivity.class);
             startActivity(i);
-
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -181,4 +191,19 @@ public class MainActivity extends AppCompatActivity {
         }else {
             super.onBackPressed();
         }}
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(a==1)
+            makeMovieQuery(R.id.popular_view);
+       else if(a==2)
+            makeMovieQuery(R.id.top_rated_view);
+        else
+            makeMovieQuery();
+
+
+
+
+    }
 }

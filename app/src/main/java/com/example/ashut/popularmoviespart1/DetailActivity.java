@@ -1,7 +1,6 @@
 package com.example.ashut.popularmoviespart1;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -27,9 +26,7 @@ import android.widget.ToggleButton;
 import com.example.ashut.popularmoviespart1.Adapters.ReviewsAdapter;
 import com.example.ashut.popularmoviespart1.Adapters.TrailersAdapter;
 import com.example.ashut.popularmoviespart1.Database.MoviesContentProvider;
-import com.example.ashut.popularmoviespart1.Database.MoviesContract;
 import com.example.ashut.popularmoviespart1.Jsons.DeatilJson;
-import com.example.ashut.popularmoviespart1.Jsons.MoviesJson;
 import com.example.ashut.popularmoviespart1.Jsons.ReviewsJson;
 import com.example.ashut.popularmoviespart1.Jsons.TrailersJson;
 import com.example.ashut.popularmoviespart1.SingleItems.ReviewsItem;
@@ -41,10 +38,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
-
-
-    private static final String TAG = DetailActivity.class.getSimpleName();
+public class DetailActivity extends AppCompatActivity{
 
     public static RecyclerView.LayoutManager mLayoutManager, mReviewsLayoutManager;
     private  TextView dTitle, dReleaseDate, dAverageVote, dOverview, dTrailers, dReviews;
@@ -55,13 +49,12 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static ArrayList<TrailersItem> mTrailersData;
     private static ArrayList<ReviewsItem> mReviewsData;
     HashMap<String, String> mdata;
-   public static String movieId,movieTitle;
+    public static String movieId,movieTitle,posterPath;
     boolean Internet;
     private ImageView dBackground, dPoster;
     private ProgressBar dLoadingIndicator;
     private TrailersAdapter mTrailersAdapter;
     private ReviewsAdapter mReviewsAdapter;
-    private  static final int LoaderId=0;
     private static ToggleButton toggle;
 
     public static void showErrorMessage() {
@@ -88,6 +81,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         movieId = "" + getIntent().getStringExtra("MOVIE_ID");
         movieTitle=""+getIntent().getStringExtra("MOVIE_TITLE");
+        posterPath=""+getIntent().getStringExtra("POSTER_PATH");
 
         final URL DetailSearchUrl = NetworkUtility.buildDetailUrl(movieId);
         new DetailQueryTask().execute(DetailSearchUrl);
@@ -112,19 +106,22 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mReviewsAdapter = new ReviewsAdapter(mReviewsData, DetailActivity.this);
         mReviewsRecyclerView.setAdapter(mReviewsAdapter);
 
-
-
-
+        new FavouriteQueryTask().execute();
 
 
         toggle = (ToggleButton) findViewById(R.id.toggleButton);
-        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
+        toggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (toggle.isChecked()) {
 
                     ContentValues cv = new ContentValues();
-                    cv.put(MoviesContract.MoviesEntry.MOVIE_ID,movieId);
-                    cv.put(MoviesContract.MoviesEntry.MOVIE_NAME,movieTitle);
+                    cv.put(MoviesContentProvider.movieId,movieId);
+                    cv.put(MoviesContentProvider.movieName,movieTitle);
+                    cv.put(MoviesContentProvider.posterPath,posterPath);
+
+                    getContentResolver().insert(
+                            MoviesContentProvider.CONTENT_URI, cv);
 
 
                     if(mToast!=null)
@@ -133,22 +130,21 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     mToast.show();
 
                 } else {
+                    String[] selectionArgs ={movieId};
+                   getContentResolver().delete(MoviesContentProvider.CONTENT_URI,""+MoviesContentProvider.movieId+" = ? ",selectionArgs);
 
 
 
-
-                    /*
                     if(mToast!=null)
                         mToast.cancel();
-                    mToast=Toast.makeText(DetailActivity.this,"Removed from Favourite",Toast.LENGTH_LONG);
+                    mToast=Toast.makeText(DetailActivity.this,"Removed from Favourites",Toast.LENGTH_LONG);
                     mToast.show();
-                    */
+
                 }
             }
+
         });
 
-
-        getSupportLoaderManager().initLoader(LoaderId,null,this);
 
     }
 
@@ -185,51 +181,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     }
 
 
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new AsyncTaskLoader<Cursor>(this) {
-            @Override
-            public Cursor loadInBackground() {
-                try {
-                    String mSelection=" movieId = ?";
-                    String[] mSelectionArgs=new String[]{movieId};
-                    return getContentResolver().query(MoviesContract.MoviesEntry.BASE_CONTENT_URI,
-                            null,
-                            mSelection,
-                            mSelectionArgs,
-                            null);
-
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to asynchronously load data.");
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-        };
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if(data.getCount()==0){
-dTitle.setText(data.getCount());
-        }
-        else {dTitle.setText(data.getCount());
-        }
-
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
-
-
-
-
-
     private class DetailQueryTask extends AsyncTask<URL, Void, HashMap<String, String>> {
-
 
         @Override
         protected void onPreExecute() {
@@ -304,6 +256,29 @@ dTitle.setText(data.getCount());
                 mTrailersAdapter = new TrailersAdapter(mTrailersData, DetailActivity.this);
                 mRecyclerView.setAdapter(mTrailersAdapter);
             }
+        }
+    }
+
+    private class FavouriteQueryTask extends AsyncTask<Void, Void, Cursor> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Cursor doInBackground(Void... voids) {
+            String[] selectionArgs={movieId};
+            Cursor c = getContentResolver().query(MoviesContentProvider.CONTENT_URI,null,MoviesContentProvider.movieId+" = ? ",selectionArgs,null);
+            return c;
+        }
+
+        @Override
+        protected void onPostExecute(Cursor c) {
+            if(c.getCount()==0)
+                toggle.setChecked(false);
+            else
+                toggle.setChecked(true);
         }
     }
 

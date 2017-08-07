@@ -2,6 +2,7 @@ package com.example.ashut.popularmoviespart1;
 
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.support.v4.content.Loader;
 
 import java.io.IOException;
 import java.io.InputStream;

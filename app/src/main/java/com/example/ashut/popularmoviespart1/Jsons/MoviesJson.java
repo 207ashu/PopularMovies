@@ -1,5 +1,7 @@
 package com.example.ashut.popularmoviespart1.Jsons;
 
+import android.support.v4.content.Loader;
+
 import com.example.ashut.popularmoviespart1.Adapters.MovieAdapter;
 import com.example.ashut.popularmoviespart1.SingleItems.MovieItem;
 
