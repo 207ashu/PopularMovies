@@ -27,7 +27,7 @@
         android:textAlignment="center"
         android:textColor="#000000"
         android:textSize="46sp"
-        android:text="You Have No Favourites Yet..."
+        android:text="No Movie Is Marked Favourite Yet..."
         android:visibility="invisible" />
     <GridView
         android:layout_width="match_parent"
