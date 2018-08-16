@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class NetworkUtility {
 
-    final static String BASE_URL = "https://api.themoviedb.org/3/movie?api_key=81710de5042d48ea00effa78ae855b78&language=en-US&page=1";
+    final static String BASE_URL = "https://api.themoviedb.org/3/movie?api_key=YOUR_API_KEY&language=en-US&page=1";
 
     //Creating URL for MainDisplay
     public static URL buildUrl() {
