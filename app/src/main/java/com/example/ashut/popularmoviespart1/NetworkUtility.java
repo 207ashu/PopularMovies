@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class NetworkUtility {
 
-    final static String BASE_URL = "https://api.themoviedb.org/3/movie?api_key=YOUR_API_KEY&language=en-US&page=1";
+    final static String BASE_URL = "https://api.themoviedb.org/3/movie?api_key=YOURAPIKEY&language=en-US&page=1";
 
     //Creating URL for MainDisplay
     public static URL buildUrl() {
@@ -74,28 +74,33 @@ public class NetworkUtility {
 
 
         // Creating URL For Sorting via Menu
-    public static URL buildUrl(int itemSelected) {
-        Uri builtUri = Uri.parse(BASE_URL).buildUpon()
-                .build();
-        if (itemSelected == R.id.popular_view) {
-            builtUri = Uri.parse(BASE_URL).buildUpon()
-                    .appendPath("popular")
+        public static URL buildUrl(int itemSelected) {
+            Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                     .build();
-        } else if (itemSelected == R.id.top_rated_view) {
-            builtUri = Uri.parse(BASE_URL).buildUpon()
-                    .appendPath("top_rated")
-                    .build();
-        }
 
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+            if (itemSelected == R.id.popular_menu) {
+                builtUri = Uri.parse(BASE_URL).buildUpon()
+                        .appendPath("popular")
+                        .build();
+            } else if (itemSelected == R.id.top_rated_menu) {
+                builtUri = Uri.parse(BASE_URL).buildUpon()
+                        .appendPath("top_rated")
+                        .build();
+            }else if (itemSelected == R.id.now_playing_menu) {
+                builtUri = Uri.parse(BASE_URL).buildUpon()
+                        .appendPath("now_playing")
+                        .build();
+            }
 
-        return url;
-    }
+            URL url = null;
+            try {
+                url = new URL(builtUri.toString());
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+
+            return url;
+        }
 
 
     public static String getResponseFromHttpUrl(URL url) throws Exception {
