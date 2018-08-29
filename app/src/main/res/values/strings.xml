@@ -6,5 +6,9 @@
     <string name="overview">Plot Synopsis</string>
     <string name="background">Background Poster</string>
     <string name="poster">Poster</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="Top_rated">Top Rated</string>
+    <string name="most_popular">Most Popular</string>
+    <string name="my_favourites">My Favourites</string>
     <string name="noConnection">Pls Check Your Internet Connection !!!!!</string>
 </resources>

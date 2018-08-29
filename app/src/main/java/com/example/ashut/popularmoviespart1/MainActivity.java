@@ -33,9 +33,9 @@ public class MainActivity extends AppCompatActivity  {
     private static GridView mGridView;
     private MovieAdapter mMovieAdapter;
     private static ArrayList<MovieItem> mGridData;
-    Boolean isFilterOn=false;
     boolean InternetStatus;
     String movieId="";String movieTitle="";String posterPath="";
+    MenuItem sort;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +46,13 @@ public class MainActivity extends AppCompatActivity  {
         mLoadingIndicator=(ProgressBar)findViewById(R.id.pb_loader);
         mErrorMessageDisplay=(TextView) findViewById(R.id.tv_error_message);
         mHeadingDisplay=(TextView)findViewById(R.id.tv_heading) ;
-
+/*        if(a==1){
+            makeMovieQuery(R.id.popular_menu);
+        }
+        else if(a==2)
+            makeMovieQuery(R.id.top_rated_menu);
+        else
+            makeMovieQuery();*/
         makeMovieQuery();
 
 
@@ -73,7 +79,6 @@ public class MainActivity extends AppCompatActivity  {
 
     private void makeMovieQuery() {
         mHeadingDisplay.setText("Now Playing");
-        isFilterOn=false;
         mGridData = new ArrayList<>();
         mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
         mGridView.setAdapter(mMovieAdapter);
@@ -81,6 +86,13 @@ public class MainActivity extends AppCompatActivity  {
         new MovieQueryTask().execute(movieSearchUrl);
     }
     private void makeMovieQuery(int menuItemSelected) {
+        if(menuItemSelected==R.id.top_rated_menu)
+            mHeadingDisplay.setText(R.string.Top_rated);
+        else if(menuItemSelected==R.id.popular_menu)
+            mHeadingDisplay.setText(R.string.most_popular);
+        else
+            mHeadingDisplay.setText(R.string.now_playing);
+
         mGridData = new ArrayList<>();
         mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
         mGridView.setAdapter(mMovieAdapter);
@@ -145,6 +157,7 @@ public class MainActivity extends AppCompatActivity  {
             if (movieSearchResults != null && !movieSearchResults.equals("")) {
                 showJsonData();
                 mMovieAdapter.setGridData(mGridData);
+                int abc=mGridData.size();
 
             } else {
                 showErrorMessage();
@@ -157,26 +170,46 @@ public class MainActivity extends AppCompatActivity  {
         return true;
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int itemThatWasClickedId = item.getItemId();
-        isFilterOn=true;
+     //   sort=item;
 
-        if (itemThatWasClickedId == R.id.popular_view)
+        int itemThatWasClickedId = item.getItemId();
+        //int leavingItem;
+       /* if(a==0)
+            itemThatWasClickedId=R.id.now_playing_menu;
+
+*/
+        if (itemThatWasClickedId == R.id.now_playing_menu)
         {
-            a=1;
-            mHeadingDisplay.setText("Popular Movies");
-            makeMovieQuery(R.id.popular_view);
-            return true;
-        }  if (itemThatWasClickedId == R.id.top_rated_view) {
-            a=2;
-            mHeadingDisplay.setText("Top Rated Movies");
-            makeMovieQuery(R.id.top_rated_view);
+            a=0;
+            item.setChecked(true);
+            mHeadingDisplay.setText(R.string.now_playing);
+            makeMovieQuery(R.id.now_playing_menu);
             return true;
         }
-        if(itemThatWasClickedId==R.id.my_favorites_view){
-            a=0;
+        if (itemThatWasClickedId == R.id.popular_menu)
+        {
+            a=1;
+            item.setChecked(true);
+            mHeadingDisplay.setText(R.string.most_popular);
+            makeMovieQuery(R.id.popular_menu);
+            return true;
+        }  if (itemThatWasClickedId == R.id.top_rated_menu) {
+            a=2;
+            item.setChecked(true);
+            mHeadingDisplay.setText(R.string.Top_rated);
+            makeMovieQuery(R.id.top_rated_menu);
+            return true;
+        }
+        if(itemThatWasClickedId==R.id.favourites_menu){
+            //a=0;
+           // item.setChecked(true);
             Intent i=new Intent(MainActivity.this,FavouritesActivity.class);
             startActivity(i);
             return true;
@@ -184,26 +217,59 @@ public class MainActivity extends AppCompatActivity  {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
+   /* @Override
     public void onBackPressed() {
         if(isFilterOn==true){
             makeMovieQuery();
         }else {
             super.onBackPressed();
-        }}
+        }}*/
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(a==1)
-            makeMovieQuery(R.id.popular_view);
+        if(a==1){
+          //  sort.setChecked(true);
+            makeMovieQuery(R.id.popular_menu);
+        }
        else if(a==2)
-            makeMovieQuery(R.id.top_rated_view);
+            makeMovieQuery(R.id.top_rated_menu);
         else
             makeMovieQuery();
+    }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("sort", a);
+        /*outState.putIntArray("ARTICLE_SCROLL_POSITION",
+                new int[]{ mGridView.getScrollX(), mGridView.getScrollY()});*/
+    }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        a = savedInstanceState.getInt("sort");
+        if(a==1){
+           // mHeadingDisplay.setText(R.string.most_popular);
+            makeMovieQuery(R.id.popular_menu);
+        }
+        else if(a==2){
+            makeMovieQuery(R.id.top_rated_menu);
+           // mHeadingDisplay.setText(R.string.Top_rated);
+        }
+        else{
+            makeMovieQuery();
+          //  mHeadingDisplay.setText(R.string.now_playing);
+        }/*
 
-
+        final int[] position = savedInstanceState.getIntArray("ARTICLE_SCROLL_POSITION");
+        if(position != null)
+            mGridView.post(new Runnable() {
+                public void run() {
+                    mGridView.scrollTo(position[0], position[1]);
+                }
+            });
+*/
     }
 }

@@ -34,6 +34,7 @@ public class FavouritesActivity extends AppCompatActivity implements LoaderManag
         mGridView=(GridView)findViewById(R.id.favouritesGridView);
         tvFavourites=(TextView)findViewById(R.id.tv_favourites);
         tvFavouritesError=(TextView)findViewById(R.id.tv_favourites_error);
+        mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
 
 
 
