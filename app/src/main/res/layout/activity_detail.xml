@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/FrameLayout"
-    android:background="@drawable/border"
     tools:context="com.example.ashut.popularmoviespart1.DetailActivity">
 
     <ScrollView

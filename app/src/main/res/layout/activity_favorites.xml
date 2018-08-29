@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/border"
     tools:context="com.example.ashut.popularmoviespart1.FavouritesActivity">
 
     <TextView
@@ -12,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:text="Favourites"
-        android:textColor="#ffffff"
+        android:textColor="#000"
         android:textSize="32sp"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="0dp"
