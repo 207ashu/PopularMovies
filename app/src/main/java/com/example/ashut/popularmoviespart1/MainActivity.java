@@ -1,13 +1,16 @@
 package com.example.ashut.popularmoviespart1;
 
 import android.content.Intent;
-import android.content.Loader;
+import android.database.Cursor;
+import android.support.v4.content.CursorLoader;
+import  android.support.v4.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,21 +18,23 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.ashut.popularmoviespart1.Adapters.MovieAdapter;
+import com.example.ashut.popularmoviespart1.Database.MoviesContentProvider;
 import com.example.ashut.popularmoviespart1.Jsons.MoviesJson;
 import com.example.ashut.popularmoviespart1.SingleItems.MovieItem;
 
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks {
 
 
     private static TextView mErrorMessageDisplay;
     private ProgressBar mLoadingIndicator;
     private static TextView mHeadingDisplay;
-    static int a=0;
+    static int a=0, index=-1;
     private static GridView mGridView;
     private MovieAdapter mMovieAdapter;
     private static ArrayList<MovieItem> mGridData;
@@ -46,14 +51,10 @@ public class MainActivity extends AppCompatActivity  {
         mLoadingIndicator=(ProgressBar)findViewById(R.id.pb_loader);
         mErrorMessageDisplay=(TextView) findViewById(R.id.tv_error_message);
         mHeadingDisplay=(TextView)findViewById(R.id.tv_heading) ;
-/*        if(a==1){
-            makeMovieQuery(R.id.popular_menu);
-        }
-        else if(a==2)
-            makeMovieQuery(R.id.top_rated_menu);
-        else
-            makeMovieQuery();*/
-        makeMovieQuery();
+
+        if(savedInstanceState==null)
+           makeMovieQuery();
+
 
 
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -73,31 +74,67 @@ public class MainActivity extends AppCompatActivity  {
 
             }
         });
+
     }
 
 
 
     private void makeMovieQuery() {
-        mHeadingDisplay.setText("Now Playing");
-        mGridData = new ArrayList<>();
-        mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
-        mGridView.setAdapter(mMovieAdapter);
-        URL movieSearchUrl = NetworkUtility.buildUrl();
-        new MovieQueryTask().execute(movieSearchUrl);
+
+
+        if(index>=0){
+            mHeadingDisplay.setText("Now Playing");
+
+            mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
+            mGridView.setAdapter(mMovieAdapter);
+            mGridView.smoothScrollToPosition(index);
+        }else {
+            mHeadingDisplay.setText("Now Playing");
+
+            mGridData = new ArrayList<>();
+            mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
+            mGridView.setAdapter(mMovieAdapter);
+            URL movieSearchUrl = NetworkUtility.buildUrl();
+            new MovieQueryTask().execute(movieSearchUrl);
+        }
+    }
+
+    private void LoadFav(){
+        mHeadingDisplay.setText("My Favorites");
+
+        getSupportLoaderManager().initLoader(0,null,this);
+
+
     }
     private void makeMovieQuery(int menuItemSelected) {
-        if(menuItemSelected==R.id.top_rated_menu)
+        /*if(menuItemSelected==R.id.top_rated_menu)
             mHeadingDisplay.setText(R.string.Top_rated);
         else if(menuItemSelected==R.id.popular_menu)
             mHeadingDisplay.setText(R.string.most_popular);
         else
-            mHeadingDisplay.setText(R.string.now_playing);
+            mHeadingDisplay.setText(R.string.now_playing);*/
 
-        mGridData = new ArrayList<>();
+       /* mGridData = new ArrayList<>();
         mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
         mGridView.setAdapter(mMovieAdapter);
         URL movieSearchUrl = NetworkUtility.buildUrl(menuItemSelected);
-        new MovieQueryTask().execute(movieSearchUrl);
+        new MovieQueryTask().execute(movieSearchUrl);*/
+
+
+        if(index>=0){
+            mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
+            mGridView.setAdapter(mMovieAdapter);
+            mGridView.smoothScrollToPosition(index);
+        }else{
+            mGridData = new ArrayList<>();
+            mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
+            mGridView.setAdapter(mMovieAdapter);
+            URL movieSearchUrl = NetworkUtility.buildUrl(menuItemSelected);
+            new MovieQueryTask().execute(movieSearchUrl);
+        }
+
+
+
     }
 
     public static void showErrorMessage() {
@@ -123,7 +160,47 @@ public class MainActivity extends AppCompatActivity  {
         return internetStatus;
     }
 
+    @Override
+    public android.support.v4.content.Loader onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this, MoviesContentProvider.CONTENT_URI,null,null,null,MoviesContentProvider.movieName);
+    }
 
+    @Override
+    public void onLoadFinished(Loader loader, Object object) {
+        Cursor data=(Cursor)object;
+        mGridData=new ArrayList<>();
+        mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
+
+        if(data.getCount()==0){
+            mHeadingDisplay.setVisibility(View.GONE);
+            mErrorMessageDisplay.setVisibility(View.VISIBLE);
+            mErrorMessageDisplay.setText("No Favorites Yet");
+        }
+        if (data.moveToFirst()) {
+
+            do {
+                String title=data.getString(data.getColumnIndex(MoviesContentProvider.movieName));
+                String movieId=data.getString(data.getColumnIndex(MoviesContentProvider.movieId));
+                String posterPath=data.getString(data.getColumnIndex(MoviesContentProvider.posterPath));
+
+                MovieItem item = new MovieItem(title, posterPath,movieId);
+
+                item.setTitle(title);
+                item.setPosterPath(posterPath);
+                item.setMovieId(movieId);
+                MovieAdapter.mGridData.add(item);
+
+            } while (data.moveToNext());
+
+        }
+        mMovieAdapter.setGridData(mGridData);
+        mGridView.setAdapter(mMovieAdapter);
+    }
+
+    @Override
+    public void onLoaderReset(android.support.v4.content.Loader loader) {
+
+    }
 
 
     private class MovieQueryTask extends AsyncTask<URL, Void, String> {
@@ -157,7 +234,6 @@ public class MainActivity extends AppCompatActivity  {
             if (movieSearchResults != null && !movieSearchResults.equals("")) {
                 showJsonData();
                 mMovieAdapter.setGridData(mGridData);
-                int abc=mGridData.size();
 
             } else {
                 showErrorMessage();
@@ -177,17 +253,13 @@ public class MainActivity extends AppCompatActivity  {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-     //   sort=item;
 
         int itemThatWasClickedId = item.getItemId();
-        //int leavingItem;
-       /* if(a==0)
-            itemThatWasClickedId=R.id.now_playing_menu;
 
-*/
         if (itemThatWasClickedId == R.id.now_playing_menu)
         {
             a=0;
+            index=-1;
             item.setChecked(true);
             mHeadingDisplay.setText(R.string.now_playing);
             makeMovieQuery(R.id.now_playing_menu);
@@ -196,80 +268,71 @@ public class MainActivity extends AppCompatActivity  {
         if (itemThatWasClickedId == R.id.popular_menu)
         {
             a=1;
+            index=-1;
             item.setChecked(true);
             mHeadingDisplay.setText(R.string.most_popular);
             makeMovieQuery(R.id.popular_menu);
             return true;
         }  if (itemThatWasClickedId == R.id.top_rated_menu) {
             a=2;
+            index=-1;
+
             item.setChecked(true);
             mHeadingDisplay.setText(R.string.Top_rated);
             makeMovieQuery(R.id.top_rated_menu);
             return true;
         }
         if(itemThatWasClickedId==R.id.favourites_menu){
-            //a=0;
-           // item.setChecked(true);
-            Intent i=new Intent(MainActivity.this,FavouritesActivity.class);
-            startActivity(i);
+            a=3;
+            index=-1;
+
+            item.setChecked(true);
+            LoadFav();
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-   /* @Override
-    public void onBackPressed() {
-        if(isFilterOn==true){
-            makeMovieQuery();
-        }else {
-            super.onBackPressed();
-        }}*/
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(a==1){
-          //  sort.setChecked(true);
-            makeMovieQuery(R.id.popular_menu);
-        }
-       else if(a==2)
-            makeMovieQuery(R.id.top_rated_menu);
-        else
-            makeMovieQuery();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("sort", a);
-        /*outState.putIntArray("ARTICLE_SCROLL_POSITION",
-                new int[]{ mGridView.getScrollX(), mGridView.getScrollY()});*/
+        outState.putInt("INDEX",
+                mGridView.getFirstVisiblePosition());
+
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         a = savedInstanceState.getInt("sort");
+
+        index=savedInstanceState.getInt("INDEX");
+        Log.i("INDEX",""+index);
         if(a==1){
+
            // mHeadingDisplay.setText(R.string.most_popular);
             makeMovieQuery(R.id.popular_menu);
         }
         else if(a==2){
             makeMovieQuery(R.id.top_rated_menu);
            // mHeadingDisplay.setText(R.string.Top_rated);
-        }
-        else{
-            makeMovieQuery();
-          //  mHeadingDisplay.setText(R.string.now_playing);
-        }/*
+        } else if (a == 3) {
+            LoadFav();
+        } else {
+            mHeadingDisplay.setText(R.string.now_playing);
 
-        final int[] position = savedInstanceState.getIntArray("ARTICLE_SCROLL_POSITION");
+            makeMovieQuery();
+        }
+
+       // mGridView.smoothScrollToPosition(index);
+       /* final int[] position = savedInstanceState.getIntArray("ARTICLE_SCROLL_POSITION");
         if(position != null)
             mGridView.post(new Runnable() {
                 public void run() {
                     mGridView.scrollTo(position[0], position[1]);
                 }
-            });
-*/
+            });*/
+
     }
 }

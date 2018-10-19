@@ -21,8 +21,7 @@
         </activity>
         <activity android:name=".DetailActivity" />
         <activity android:name=".DetailedReview" />
-        <activity android:name=".FavouritesActivity" />
-        
+
         <provider
             android:authorities="com.example.ashut.popularmoviespart1"
             android:name="com.example.ashut.popularmoviespart1.Database.MoviesContentProvider"
