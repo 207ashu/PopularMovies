@@ -80,8 +80,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     private void makeMovieQuery() {
-
-
+        mHeadingDisplay.setVisibility(View.VISIBLE);
         if(index>=0){
             mHeadingDisplay.setText("Now Playing");
 
@@ -100,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void LoadFav(){
+        mHeadingDisplay.setVisibility(View.VISIBLE);
         mHeadingDisplay.setText("My Favorites");
 
         getSupportLoaderManager().initLoader(0,null,this);
@@ -107,12 +107,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
     private void makeMovieQuery(int menuItemSelected) {
-        /*if(menuItemSelected==R.id.top_rated_menu)
+        mHeadingDisplay.setVisibility(View.VISIBLE);
+        if(menuItemSelected==R.id.top_rated_menu)
             mHeadingDisplay.setText(R.string.Top_rated);
         else if(menuItemSelected==R.id.popular_menu)
             mHeadingDisplay.setText(R.string.most_popular);
         else
-            mHeadingDisplay.setText(R.string.now_playing);*/
+            mHeadingDisplay.setText(R.string.now_playing);
 
        /* mGridData = new ArrayList<>();
         mMovieAdapter = new MovieAdapter(this, R.layout.single_movie_item, mGridData);
